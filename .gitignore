@@ -1,0 +1,18 @@
+# Ignore everything
+*
+
+# But don't ignore .m files
+!*.m
+
+# Don't ignore directories (so Git can traverse them)
+!*/
+
+# You might also want to keep these files:
+!README.md
+!.gitignore
+
+# Optional: Ignore MATLAB specific files even if they're .m
+# Uncomment these if you don't want them:
+# *~
+# *.asv
+# *.autosave
