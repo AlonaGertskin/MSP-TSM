@@ -37,6 +37,12 @@ t = (0:1/fs:(duration - 1/fs))';
 % Generate signal
 x = amp1 * cos(2*pi * freq1 * t) + amp2 * cos(2*pi * freq2 * t);
 
+% Scale to prevent clipping (normalize to 90% of max range)
+max_val = max(abs(x));
+if max_val > 0
+    x = 0.9 * x / max_val;
+end
+
 fprintf('Generated periodic signal: %.1f seconds at %d Hz\n', duration, fs);
 fprintf('Frequencies: %.0f Hz (amp=%.1f) + %.0f Hz (amp=%.1f)\n', ...
     freq1, amp1, freq2, amp2);
