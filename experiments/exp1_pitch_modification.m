@@ -1,11 +1,33 @@
 function results = exp1_pitch_modification()
 % EXP1_PITCH_MODIFICATION - Experiment 1: Pitch Modification with Periodic Signals
 %
-% This experiment generates a periodic signal and applies pitch shifting
-% to transpose it to G4 (Dominant) and F3 (Sub-Dominant) frequencies.
+% This experiment systematically compares OLA and WSOLA algorithms for pitch 
+% modification using a controlled periodic test signal. The experiment performs
+% parameter optimization to find optimal settings for both algorithms, then
+% applies pitch shifting to transpose the signal to musically relevant frequencies.
+%
+% Process:
+%   1. Generates periodic test signal: x = cos(2π×261×t) + 0.4×cos(2π×783×t)
+%      (C4 + G5 harmonic combination)
+%   2. Performs parameter sweep to optimize OLA settings (synHop, winLen, winType)
+%   3. Performs tolerance sweep to optimize WSOLA settings (using best OLA params)
+%   4. Applies pitch shifting to transpose signal to:
+%      - G4 (392 Hz, +704 cents) - Dominant
+%      - F3 (175 Hz, -692 cents) - Sub-Dominant  
+%   5. Generates comparative analysis plots (amplitude vs time, FFT spectra)
+%   6. Saves optimized audio files and comprehensive parameter sweep documentation
 %
 % Output:
-%   results - Structure containing experiment results
+%   results - Structure containing:
+%             .optimal_params - Best parameters found for OLA and WSOLA
+%             .signals - All processed signals (original, OLA, WSOLA)
+%             .fft_analysis - Frequency analysis results for all signals
+%             .pitch_shifts - Cent values for target frequencies
+%
+% Files Generated:
+%   - Audio: Original and pitch-shifted signals using optimal parameters
+%   - Plots: Amplitude comparisons, FFT spectra, parameter sweep results
+%   - Log: Complete parameter sweep results and optimization summary
 
 fprintf('=== Experiment 1: Pitch Modification with Periodic Signals ===\n\n');
 

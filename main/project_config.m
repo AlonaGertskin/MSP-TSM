@@ -43,14 +43,11 @@ function config = config_exp1_sweep()
 % Configuration for Experiment 1 parameter sweep
 
 % Parameter sweep values for OLA
-% config.ola_synHop_values = [512,1024, 2048];
-% config.ola_winLen_values = [256, 512];
-% config.ola_winType_values = [2, 4];      % 1=sine, 2=Hann
-config.ola_synHop_values = [1024];
-config.ola_winLen_values = [256];
-config.ola_winType_values = [2];      % 1=sine, 2=Hann
+config.ola_synHop_values = [512,1024];
+config.ola_winLen_values = [256,1024];
+config.ola_winType_values = [2];
+
 %Parameter sweep values for WSOLA
-% config.wsola_tolerance_values = [512, 1024, 2048, 4096];
-config.wsola_tolerance_values = [512];
+config.wsola_tolerance_values = [512, 1024, 2048, 4096];
 
 end
