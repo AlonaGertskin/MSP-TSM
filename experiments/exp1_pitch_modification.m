@@ -31,9 +31,12 @@ cents_f3 = 1200 * log2(config.target_f3 / config.freq1);
 fprintf('Pitch shifts: G4 = %.0f cents, F3 = %.0f cents\n', cents_g4, cents_f3);
 
 % Set up parameters for pitchShiftViaTSM
+% OLA using wsolaTSM with tolerance = 0
 param_ola.fsAudio = fs;
-param_ola.algTSM = @(x, alpha, ~) ola(x, alpha);
+param_ola.algTSM = @wsolaTSM;
+param_ola.tolerance = 0;
 
+% WSOLA using wsolaTSM with tolerance > 0
 param_wsola.fsAudio = fs;
 param_wsola.algTSM = @wsolaTSM;
 
