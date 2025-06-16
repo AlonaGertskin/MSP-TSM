@@ -64,29 +64,29 @@ plots_dir = fullfile('outputs', 'experiment1', 'plots');
 
 % Analyze original signal
 fprintf('\n--- ORIGINAL SIGNAL (C4 + G5) ---\n');
-[freq_orig, mag_orig, peaks_orig] = analyze_fft(x_original, fs, true);
+[freq_orig, mag_orig, peaks_orig] = analyze_fft(x_original, fs);
 title('Original Signal FFT (C4+G5)');
 saveas(gcf, fullfile(plots_dir, 'fft_original_signal.png'));
 
 % Analyze OLA results
 fprintf('\n--- OLA G4 PITCH SHIFT (%.0f cents) ---\n', cents_g4);
-[freq_ola_g4, mag_ola_g4, peaks_ola_g4] = analyze_fft(y_ola_g4, fs, true);
+[freq_ola_g4, mag_ola_g4, peaks_ola_g4] = analyze_fft(y_ola_g4, fs);
 title(sprintf('OLA G4 Pitch Shift FFT (%.0f cents)', cents_g4));
 saveas(gcf, fullfile(plots_dir, 'fft_ola_g4.png'));
 
 fprintf('\n--- OLA F3 PITCH SHIFT (%.0f cents) ---\n', cents_f3);
-[freq_ola_f3, mag_ola_f3, peaks_ola_f3] = analyze_fft(y_ola_f3, fs, true);
+[freq_ola_f3, mag_ola_f3, peaks_ola_f3] = analyze_fft(y_ola_f3, fs);
 title(sprintf('OLA F3 Pitch Shift FFT (%.0f cents)', cents_f3));
 saveas(gcf, fullfile(plots_dir, 'fft_ola_f3.png'));
 
 % Analyze WSOLA results
 fprintf('\n--- WSOLA G4 PITCH SHIFT (%.0f cents) ---\n', cents_g4);
-[freq_wsola_g4, mag_wsola_g4, peaks_wsola_g4] = analyze_fft(y_wsola_g4, fs, true);
+[freq_wsola_g4, mag_wsola_g4, peaks_wsola_g4] = analyze_fft(y_wsola_g4, fs);
 title(sprintf('WSOLA G4 Pitch Shift FFT (%.0f cents)', cents_g4));
 saveas(gcf, fullfile(plots_dir, 'fft_wsola_g4.png'));
 
 fprintf('\n--- WSOLA F3 PITCH SHIFT (%.0f cents) ---\n', cents_f3);
-[freq_wsola_f3, mag_wsola_f3, peaks_wsola_f3] = analyze_fft(y_wsola_f3, fs, true);
+[freq_wsola_f3, mag_wsola_f3, peaks_wsola_f3] = analyze_fft(y_wsola_f3, fs);
 title(sprintf('WSOLA F3 Pitch Shift FFT (%.0f cents)', cents_f3));
 saveas(gcf, fullfile(plots_dir, 'fft_wsola_f3.png'));
 
