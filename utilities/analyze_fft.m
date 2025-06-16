@@ -70,18 +70,21 @@ end
 
 % Plot if requested
 if plot_result
-    figure();
-    plot(freq_axis, magnitude, 'b-', 'LineWidth', 1);
-    hold on;
-    if ~isempty(peak_freqs)
-        plot(peak_freqs, peak_mags, 'ro', 'MarkerSize', 8, 'LineWidth', 2);
-    end
-    grid on;
-    xlabel('Frequency (Hz)');
-    ylabel('Magnitude');
-    title('FFT Magnitude Spectrum');
-    xlim([0, 2000]);  % Show up to 2kHz for audio signals
-    legend('Spectrum', 'Peaks', 'Location', 'best');
+    fig = figure('Visible', 'on');  % Show plot
+else
+    fig = figure('Visible', 'off'); % Create plot but don't show
 end
+
+plot(freq_axis, magnitude, 'b-', 'LineWidth', 1);
+hold on;
+if ~isempty(peak_freqs)
+    plot(peak_freqs, peak_mags, 'ro', 'MarkerSize', 8, 'LineWidth', 2);
+end
+grid on;
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+title('FFT Magnitude Spectrum');
+xlim([0, 2000]);  % Show up to 2kHz for audio signals
+legend('Spectrum', 'Peaks', 'Location', 'best');
 
 end

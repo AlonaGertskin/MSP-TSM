@@ -43,6 +43,9 @@ y_ola_f3 = pitchShiftViaTSM(x_original, cents_f3, param_ola);
 y_wsola_g4 = pitchShiftViaTSM(x_original, cents_g4, param_wsola);
 y_wsola_f3 = pitchShiftViaTSM(x_original, cents_f3, param_wsola);
 
+% Create plots directory for FFT plots
+plots_dir = fullfile('outputs', 'experiment1', 'plots');
+
 % Step 3: Plot amplitude vs time comparisons
 fprintf('\nStep 3: Plotting amplitude vs time comparisons...\n');
 
@@ -50,17 +53,16 @@ fprintf('\nStep 3: Plotting amplitude vs time comparisons...\n');
 signals_g4 = {x_original, y_ola_g4, y_wsola_g4};
 titles_g4 = {'Original (C4+G5)', sprintf('OLA → G4 (%.0f cents)', cents_g4), sprintf('WSOLA → G4 (%.0f cents)', cents_g4)};
 plot_amplitude_vs_time(signals_g4, t, titles_g4, [0, 0.02]);
+saveas(gcf, fullfile(plots_dir, 'amplitude_vs_time_G4.png'));  % Add this line
 
 % Plot comparison for F3 pitch shift
 signals_f3 = {x_original, y_ola_f3, y_wsola_f3};
 titles_f3 = {'Original (C4+G5)', sprintf('OLA → F3 (%.0f cents)', cents_f3), sprintf('WSOLA → F3 (%.0f cents)', cents_f3)};
 plot_amplitude_vs_time(signals_f3, t, titles_f3, [0, 0.02]);
+saveas(gcf, fullfile(plots_dir, 'amplitude_vs_time_F3.png'));  % Add this line
 
 % Step 4: FFT Analysis
 fprintf('\nStep 4: Analyzing frequency content...\n');
-
-% Create plots directory for FFT plots
-plots_dir = fullfile('outputs', 'experiment1', 'plots');
 
 % Analyze original signal
 fprintf('\n--- ORIGINAL SIGNAL (C4 + G5) ---\n');
