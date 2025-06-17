@@ -4,6 +4,7 @@ function config = project_config(experiment)
 % Usage:
 %   config = project_config()           % Returns global config
 %   config = project_config('exp1')     % Returns experiment 1 config
+%   config = project_config('exp2')     % Returns experiment 2 config
 
 if nargin == 0
     % Global parameters shared across all experiments
@@ -15,6 +16,8 @@ else
             config = config_exp1();
         case 'exp1_sweep'
             config = config_exp1_sweep();
+        case 'exp2'
+            config = config_exp2();
         otherwise
             error('Unknown experiment: %s', experiment);
     end
@@ -49,5 +52,43 @@ config.ola_winType_values = [2];
 
 %Parameter sweep values for WSOLA
 config.wsola_tolerance_values = [512, 1024, 2048, 4096];
+
+end
+
+function config = config_exp2()
+% Configuration for Experiment 2: Tempo Modification Analysis
+
+% Get global config first
+config = project_config();
+
+% Signal generation parameters
+config.duration = 2;                    % 2 seconds as specified
+config.freq1 = 261;                     % C4 frequency (Hz) 
+config.freq2 = 783;                     % G5 frequency (Hz)
+
+% Standard WSOLA parameters from project overview
+config.frame_size = 1024;               % N = 1024
+config.syn_hop = config.frame_size / 2; % Hs = N/2 = 512
+config.tolerance = config.syn_hop / 4;  % Δ = Hs/4 = 128
+
+% Alpha range for exploration
+config.alpha_min = 0.125;               % Minimum stretching factor (8x faster)
+config.alpha_max = 8.0;                 % Maximum stretching factor (8x slower)
+
+% Define test points across the range
+config.alpha_values = [
+    0.125,                              ... 8x faster (extreme compression)
+    0.25,                               ... 4x faster  
+    0.5,                                ... 2x faster
+    0.75,                               ... 1.33x faster
+    1.0,                                ... Original speed (reference)
+    1.5,                                ... 1.5x slower
+    2.0,                                ... 2x slower
+    4.0,                                ... 4x slower
+    8.0                                 ... 8x slower (extreme stretching)
+];
+
+% Window types to test (including rectangular window limitations)
+config.window_types = [0, 1, 2];       % 0=rectangular, 1=sin, 2=hann
 
 end
