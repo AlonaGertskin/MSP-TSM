@@ -26,8 +26,8 @@ results.time = t;
 results.signals = struct();
 
 % Step 2: Choose which parts to run
-run_part_a = true;   % Hop Size Analysis (α = Hs/Ha)
-run_part_b = true;  % Frame Size Effects
+run_part_a = false;   % Hop Size Analysis (α = Hs/Ha)
+run_part_b = false;  % Frame Size Effects
 run_part_c = true;  % Window Type Comparison
 
 if run_part_a
@@ -58,11 +58,14 @@ function results = run_experiment_part(x_original, t, fs, config, results, part_
 % Get part-specific configuration
 part_config = get_part_config(config, part_name);
 
-% Create log file and plots directory
-[log_file, plots_dir, dir_name] = setup_output_directories(part_name, part_config);
+% Create log file, plots directory, and audio directory
+[log_file, plots_dir, audio_dir, dir_name] = setup_output_directories(part_name, part_config);
+
+% Save original signal once per part/alpha combination
+save_original_signal(x_original, fs, audio_dir);
 
 % Run the experiment loop
-signals_tested = run_experiment_loop(x_original, t, fs, part_config, log_file, plots_dir);
+signals_tested = run_experiment_loop(x_original, t, fs, part_config, log_file, plots_dir, audio_dir);
 
 % Store results
 results.signals = merge_structs(results.signals, signals_tested);
@@ -126,7 +129,7 @@ end
 % =========================================================================
 % OUTPUT SETUP
 % =========================================================================
-function [log_file, plots_dir, dir_name] = setup_output_directories(part_name, part_config)
+function [log_file, plots_dir, audio_dir, dir_name] = setup_output_directories(part_name, part_config)
 % Create output directories and log file
 
 % Create directory structure: part_x/alpha=y.z/
@@ -135,8 +138,14 @@ alpha_val = part_config.fixed_params.alpha;
 alpha_dir = sprintf('alpha=%.3f', alpha_val);
 
 plots_dir = fullfile('outputs', 'experiment2', 'plots', part_name, alpha_dir);
+audio_dir = fullfile('outputs', 'experiment2', 'audio', part_name, alpha_dir);
+
+% Create both directories
 if ~exist(plots_dir, 'dir')
     mkdir(plots_dir);
+end
+if ~exist(audio_dir, 'dir')
+    mkdir(audio_dir);
 end
 
 % Use the alpha directory name for log file naming
@@ -163,7 +172,7 @@ end
 % =========================================================================
 % MAIN EXPERIMENT LOOP
 % =========================================================================
-function signals_tested = run_experiment_loop(x_original, t, fs, part_config, log_file, plots_dir)
+function signals_tested = run_experiment_loop(x_original, t, fs, part_config, log_file, plots_dir, audio_dir)
 % Run the main experiment loop for any part
 
 signals_tested = struct();
@@ -215,6 +224,9 @@ for i = 1:length(part_config.test_values)
         % Generate plots
         generate_test_plots(x_original, t, y_wsola, fs, test_description, field_name, plots_dir);
         
+        % Save audio file
+        save_audio_file(y_wsola, fs, test_description, field_name, audio_dir);
+        
         % Log success
         fprintf('SUCCESS\n');
         log_success(log_file, y_wsola, fs, x_original);
@@ -254,7 +266,7 @@ switch part_config.test_param_name
         
         % Calculate time in milliseconds for clarity
         time_ms = hop_size / 44100 * 1000;
-        test_description = sprintf('Hs=%d (%.1fms, α=%.3f)', hop_size, time_ms, alpha);
+        test_description = sprintf('Hs=%d (%.1fms, α=%.1f)', hop_size, time_ms, alpha);
         
         field_name = sprintf('hop_%d', hop_size);
         
@@ -267,7 +279,7 @@ switch part_config.test_param_name
         param_wsola.tolerance = part_config.fixed_params.tolerance;
         param_wsola.win = win(part_config.fixed_params.frame_size, window_info.beta);
         
-        test_description = sprintf('%s window (β=%d, α=%.3f)', window_info.name, window_info.beta, part_config.fixed_params.alpha);
+        test_description = sprintf('%s window (β=%d, α=%.1f)', window_info.name, window_info.beta, part_config.fixed_params.alpha);
         field_name = sprintf('window_%s', window_name);
         
     case 'frame_size'
@@ -280,7 +292,7 @@ switch part_config.test_param_name
         param_wsola.tolerance = tolerance;
         param_wsola.win = win(frame_size, part_config.fixed_params.window_beta);
         
-        test_description = sprintf('N=%d, Hs=%d, Δ=%d, α=%.3f' , frame_size, syn_hop, tolerance, part_config.fixed_params.alpha);
+        test_description = sprintf('N=%d, Hs=%d, Δ=%d', frame_size, syn_hop, tolerance);
         field_name = sprintf('N_%d', frame_size);
         
     otherwise
@@ -447,5 +459,31 @@ fields = fieldnames(struct2);
 for i = 1:length(fields)
     result.(fields{i}) = struct2.(fields{i});
 end
+
+end
+
+% =========================================================================
+% AUDIO SAVING FUNCTIONS
+% =========================================================================
+function save_original_signal(x_original, fs, audio_dir)
+% Save the original signal once per part/alpha combination
+
+filename = fullfile(audio_dir, 'original_signal.wav');
+audiowrite(filename, x_original, fs);
+
+end
+
+function save_audio_file(y_wsola, fs, test_description, field_name, audio_dir)
+% Save processed audio file with descriptive filename
+
+% Create descriptive filename from field_name
+% Clean up the field name for filename use
+clean_filename = strrep(field_name, '_', '-');
+filename = fullfile(audio_dir, sprintf('%s.wav', clean_filename));
+
+% Ensure signal is in valid range
+y_normalized = y_wsola / max(abs(y_wsola)) * 0.95;  % Normalize to prevent clipping
+
+audiowrite(filename, y_normalized, fs);
 
 end

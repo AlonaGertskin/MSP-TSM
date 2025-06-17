@@ -73,7 +73,7 @@ config.tolerance = 128;                 % Standard tolerance (frame_size/8)
 % ==========================================================================
 % PART A: Hop Size Analysis
 % ==========================================================================
-config.part_a_alpha = 4;             % Fixed alpha for hop size testing
+config.part_a_alpha = 0.125;             % Fixed alpha for hop size testing
 config.part_a_frame_size = 1024;       % Fixed frame size
 config.part_a_tolerance = 128;         % Fixed tolerance
 config.part_a_window_beta = 2;         % Fixed Hann window
@@ -84,7 +84,7 @@ config.part_a_hop_sizes = [128, 256, 512, 1024, 2048];
 % ==========================================================================
 % PART B: Frame Size Effects  
 % ==========================================================================
-config.part_b_alpha = 4;             % Fixed alpha for frame size comparison
+config.part_b_alpha = 0.125;             % Fixed alpha for frame size comparison
 config.part_b_window_beta = 2;         % Fixed Hann window (β=2)
 
 % Frame sizes to test (maintaining Hs=N/2, Δ=Hs/4 relationships)
@@ -93,7 +93,7 @@ config.part_b_frame_sizes = [256, 512, 1024, 2048, 4096];
 % ==========================================================================
 % PART C: Window Type Comparison
 % ==========================================================================
-config.part_c_alpha = 4;             % Fixed alpha for window comparison
+config.part_c_alpha = 0.125;             % Fixed alpha for window comparison
 config.part_c_frame_size = 1024;       % Fixed N = 1024
 config.part_c_syn_hop = 512;           % Fixed Hs = N/2
 config.part_c_tolerance = 128;         % Fixed Δ = Hs/4
@@ -102,6 +102,6 @@ config.part_c_tolerance = 128;         % Fixed Δ = Hs/4
 config.part_c_windows = struct();
 config.part_c_windows.rectangular = struct('beta', 0, 'name', 'Rectangular', 'desc', 'No windowing (β=0)');
 config.part_c_windows.hann = struct('beta', 2, 'name', 'Hann', 'desc', 'Standard Hann window (β=2)');
-config.part_c_windows.blackman = struct('beta', 4, 'name', 'Blackman-like', 'desc', 'Higher order (β=4)');
+config.part_c_windows.sin_4_window = struct('beta', 4, 'name', 'sin^4 window', 'desc', 'Higher order (β=4)');
 
 end
