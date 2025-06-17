@@ -88,7 +88,22 @@ config.alpha_values = [
     8.0                                 ... 8x slower (extreme stretching)
 ];
 
-% Window types to test (including rectangular window limitations)
-config.window_types = [0, 1, 2];       % 0=rectangular, 1=sin, 2=hann
+% Part B: Window Type Comparison parameters
+config.part_b_alpha = 2;             % Fixed alpha for window comparison
+config.part_b_frame_size = 1024;       % Fixed N = 1024
+config.part_b_syn_hop = 512;           % Fixed Hs = N/2
+config.part_b_tolerance = 128;         % Fixed Δ = Hs/4
 
+% Window type definitions for Part B
+config.part_b_windows = struct();
+config.part_b_windows.rectangular = struct('beta', 0, 'name', 'Rectangular', 'desc', 'No windowing (β=0)');
+config.part_b_windows.hann = struct('beta', 2, 'name', 'Hann', 'desc', 'Standard Hann window (β=2)');
+config.part_b_windows.blackman = struct('beta', 4, 'name', 'Blackman-like', 'desc', 'Higher order (β=4)');
+
+% Part C: Frame Size Effects parameters
+config.part_c_alpha = 2.0;             % Fixed alpha for frame size comparison
+config.part_c_window_beta = 2;         % Fixed Hann window (β=2)
+
+% Frame sizes to test (maintaining Hs=N/2, Δ=Hs/4 relationships)
+config.part_c_frame_sizes = [256, 512, 1024, 2048, 4096];
 end

@@ -52,11 +52,6 @@ audio_dir = fullfile(output_dir, 'audio');
 fprintf('Test signal generated: %.1f seconds, %.0f Hz + %.0f Hz\n', ...
     config.duration, config.freq1, config.freq2);
 
-% Step 3: Display alpha test values
-fprintf('\nStep 3: Alpha values from configuration...\n');
-fprintf('Alpha values to test: ');
-fprintf('%.3f ', config.alpha_values);
-fprintf('\n');
 
 % Initialize results structure
 results = struct();
@@ -66,8 +61,43 @@ results.original_signal = x_original;
 results.time = t;
 results.signals = struct();
 
-% Step 4: Part A - Alpha Limits Analysis
-fprintf('\nStep 4: Part A - Finding Alpha Breaking Points...\n');
+% Step 4: Choose which parts to run
+run_part_a = false;  % Set to true to run Part A (Alpha Limits)
+run_part_b = false;   % Set to true to run Part B (Window Types)
+run_part_c = true;   % Set to true to run Part C (Frame Size Effects)
+
+if run_part_a
+    fprintf('\nStep 4: Running Part A - Alpha Limits Analysis...\n');
+    results = run_part_a_alpha_limits(x_original, t, fs, config, results);
+end
+
+if run_part_b
+    fprintf('\nStep 4: Running Part B - Window Type Comparison...\n');
+    results = run_part_b_window_comparison(x_original, t, fs, config, results);
+end
+
+if run_part_c
+    fprintf('\nStep 4: Running Part C - Frame Size Effects...\n');
+    results = run_part_c_frame_size_effects(x_original, t, fs, config, results);
+end
+
+fprintf('\nExperiment 2 completed successfully!\n');
+fprintf('Ready for analysis and plotting...\n\n');
+
+end
+
+function results = run_part_a_alpha_limits(x_original, t, fs, config, results)
+% RUN_PART_A_ALPHA_LIMITS - Part A: Finding Alpha Breaking Points
+%
+% This function tests WSOLA with fixed parameters across different alpha values
+% to find where the algorithm breaks or produces artifacts.
+
+% Display alpha test values
+fprintf('\nStep 3: Alpha values from configuration...\n');
+fprintf('Alpha values to test: ');
+fprintf('%.3f ', config.alpha_values);
+fprintf('\n');
+fprintf('Part A: Finding Alpha Breaking Points...\n');
 fprintf('Fixed parameters: N=%d, Hs=%d, Δ=%d, Hann window\n', ...
     config.frame_size, config.syn_hop, config.tolerance);
 
@@ -90,7 +120,7 @@ param_wsola.tolerance = config.tolerance; % Fixed: 128
 param_wsola.win = win(config.frame_size, 2);  % Fixed: Hann window (beta=2)
 
 % Create plots directory for Part A
-plots_dir = fullfile('outputs', 'experiment2', 'plots','part_a');
+plots_dir = fullfile('outputs', 'experiment2', 'plots', 'part_a');
 
 fprintf('Testing alpha values for breaking points:\n');
 
@@ -135,7 +165,7 @@ for i = 1:length(config.alpha_values)
         titles_alpha = {'Original (C4+G5)', sprintf('WSOLA α=%.3f', alpha)};
         
         % Show a longer time window to see tempo changes
-        time_range = [0, 16]; 
+        time_range = [0, 0.5];  % Show first 0.5 seconds
         
         % Use original time vector as reference, pad shorter signal
         if length(y_wsola) < length(x_original)
@@ -152,7 +182,7 @@ for i = 1:length(config.alpha_values)
         close(fig);
         
         % Generate FFT analysis
-        [~, ~, ~] = analyze_fft(x_original, fs, false);
+        [~, ~, peaks_orig] = analyze_fft(x_original, fs, false);
         [~, ~, peaks_wsola] = analyze_fft(y_wsola, fs, false);
         title(sprintf('WSOLA α=%.3f FFT Analysis', alpha));
         saveas(gcf, fullfile(plots_dir, sprintf('part_a_alpha_%.3f_fft.png', alpha)));
@@ -182,7 +212,282 @@ fclose(fid);
 fprintf('\nPart A (Alpha Limits) completed!\n');
 fprintf('Log saved to: %s\n', log_file);
 
-fprintf('\nExperiment 2 setup completed successfully!\n');
-fprintf('Ready for analysis and plotting...\n\n');
+end
+
+function results = run_part_b_window_comparison(x_original, t, fs, config, results)
+% RUN_PART_B_WINDOW_COMPARISON - Part B: Window Type Effects
+%
+% This function tests different window types with fixed WSOLA parameters
+% to reveal windowing artifacts, especially rectangular window limitations.
+
+fprintf('Part B: Window Type Comparison...\n');
+fprintf('Fixed parameters: α=%.1f, N=%d, Hs=%d, Δ=%d\n', ...
+    config.part_b_alpha, config.part_b_frame_size, config.part_b_syn_hop, config.part_b_tolerance);
+
+% Create log file for Part B results
+log_file = fullfile('outputs', 'experiment2', 'part_b_window_comparison_log.txt');
+fid = fopen(log_file, 'w');
+fprintf(fid, '=== Experiment 2: Part B - Window Type Comparison ===\n');
+fprintf(fid, 'Generated: %s\n\n', datetime("now"));
+fprintf(fid, 'Fixed Parameters:\n');
+fprintf(fid, '  Alpha: %.1f\n', config.part_b_alpha);
+fprintf(fid, '  Frame Size (N): %d samples\n', config.part_b_frame_size);
+fprintf(fid, '  Synthesis Hop (Hs): %d samples\n', config.part_b_syn_hop);
+fprintf(fid, '  Tolerance (Δ): %d samples\n', config.part_b_tolerance);
+fprintf(fid, '\nWINDOW TYPE TESTING:\n');
+fprintf(fid, '===================\n\n');
+
+% Create plots directory for Part B
+plots_dir = fullfile('outputs', 'experiment2', 'plots', 'part_b');
+
+% Test different window types
+window_tests = {'rectangular', 'hann', 'blackman'};
+fprintf('Testing window types:\n');
+
+for i = 1:length(window_tests)
+    window_name = window_tests{i};
+    window_info = config.part_b_windows.(window_name);
+    
+    fprintf('  %s window (β=%d): %s ... ', window_info.name, window_info.beta, window_info.desc);
+    fprintf(fid, 'Testing %s window (β=%d): %s\n', window_info.name, window_info.beta, window_info.desc);
+    
+    % Set up WSOLA parameters with specific window
+    param_wsola.synHop = config.part_b_syn_hop;
+    param_wsola.tolerance = config.part_b_tolerance;
+    param_wsola.win = win(config.part_b_frame_size, window_info.beta);
+    
+    try
+        % Apply WSOLA with this window type
+        y_wsola = wsolaTSM(x_original, config.part_b_alpha, param_wsola);
+        
+        % Store results
+        results.signals.(sprintf('part_b_%s', window_name)) = y_wsola;
+        
+        % Generate comparison plot
+        t_wsola = (0:length(y_wsola)-1) / fs;
+        signals_window = {x_original, y_wsola};
+        titles_window = {'Original (C4+G5)', sprintf('%s Window (β=%d)', window_info.name, window_info.beta)};
+        
+        % Show detailed time window to see windowing artifacts
+        time_range = [0, 0.1];  % Short window to see artifacts clearly
+        
+        % Pad for comparison
+        if length(y_wsola) > length(x_original)
+            x_padded = [x_original; zeros(length(y_wsola) - length(x_original), 1)];
+            fig = plot_amplitude_vs_time({x_padded, y_wsola}, t_wsola, titles_window, time_range, false);
+        else
+            y_padded = [y_wsola; zeros(length(x_original) - length(y_wsola), 1)];
+            fig = plot_amplitude_vs_time({x_original, y_padded}, t, titles_window, time_range, false);
+        end
+        
+        saveas(gcf, fullfile(plots_dir, sprintf('part_b_%s_comparison.png', window_name)));
+        close(fig);
+        
+        % Generate FFT analysis to see spectral artifacts
+        [~, ~, peaks_wsola] = analyze_fft(y_wsola, fs, false);
+        title(sprintf('%s Window FFT Analysis', window_info.name));
+        saveas(gcf, fullfile(plots_dir, sprintf('part_b_%s_fft.png', window_name)));
+        
+        fprintf('SUCCESS\n');
+        fprintf(fid, '  Result: SUCCESS\n');
+        fprintf(fid, '  Output length: %d samples\n', length(y_wsola));
+        if ~isempty(peaks_wsola.frequencies)
+            fprintf(fid, '  Dominant frequency: %.1f Hz\n', peaks_wsola.frequencies(1));
+            fprintf(fid, '  Peak magnitude: %.3f\n', peaks_wsola.magnitudes(1));
+        end
+        fprintf(fid, '\n');
+        
+    catch ME
+        fprintf('FAILED: %s\n', ME.message);
+        fprintf(fid, '  Result: FAILED - %s\n\n', ME.message);
+        results.signals.(sprintf('part_b_%s', window_name)) = [];
+    end
+end
+
+% Create comparison plot of all window types
+fprintf('  Creating window comparison plot...\n');
+try
+    % Collect all successful results for comparison
+    comparison_signals = {x_original};
+    comparison_titles = {'Original'};
+    
+    for i = 1:length(window_tests)
+        window_name = window_tests{i};
+        signal_field = sprintf('part_b_%s', window_name);
+        if isfield(results.signals, signal_field) && ~isempty(results.signals.(signal_field))
+            comparison_signals{end+1} = results.signals.(signal_field);
+            window_info = config.part_b_windows.(window_name);
+            comparison_titles{end+1} = sprintf('%s (β=%d)', window_info.name, window_info.beta);
+        end
+    end
+    
+    if length(comparison_signals) > 1
+        % Find longest signal for padding
+        max_length = max(cellfun(@length, comparison_signals));
+        t_common = (0:max_length-1) / fs;
+        
+        % Pad all signals to same length
+        padded_signals = cell(size(comparison_signals));
+        for i = 1:length(comparison_signals)
+            signal = comparison_signals{i};
+            padded_signals{i} = [signal; zeros(max_length - length(signal), 1)];
+        end
+        
+        fig = plot_amplitude_vs_time(padded_signals, t_common, comparison_titles, [0, 0.05], false);
+        sgtitle(sprintf('Window Type Comparison (α=%.1f)', config.part_b_alpha), 'FontSize', 14, 'FontWeight', 'bold');
+        saveas(gcf, fullfile(plots_dir, 'part_b_all_windows_comparison.png'));
+        close(fig);
+        
+        fprintf('  Window comparison plot saved.\n');
+    end
+    
+catch ME
+    fprintf('  Comparison plot failed: %s\n', ME.message);
+    fprintf(fid, 'Comparison plot failed: %s\n', ME.message);
+end
+% Close log file
+fclose(fid);
+fprintf('\nPart B (Window Comparison) completed!\n');
+fprintf('Log saved to: %s\n', log_file);
+end
+
+function results = run_part_c_frame_size_effects(x_original, t, fs, config, results)
+% RUN_PART_C_FRAME_SIZE_EFFECTS - Part C: Frame Size Effects
+%
+% This function tests different frame sizes with fixed WSOLA parameters
+% to find optimal frame size and reveal size-related artifacts.
+
+fprintf('Part C: Frame Size Effects...\n');
+fprintf('Fixed parameters: α=%.1f, Hann window (β=%d)\n', ...
+    config.part_c_alpha, config.part_c_window_beta);
+
+% Create log file for Part C results
+log_file = fullfile('outputs', 'experiment2', 'part_c_frame_size_effects_log.txt');
+fid = fopen(log_file, 'w');
+fprintf(fid, '=== Experiment 2: Part C - Frame Size Effects ===\n');
+fprintf(fid, 'Generated: %s\n\n', datetime("now"));
+fprintf(fid, 'Fixed Parameters:\n');
+fprintf(fid, '  Alpha: %.1f\n', config.part_c_alpha);
+fprintf(fid, '  Window: Hann (beta=%d)\n', config.part_c_window_beta);
+fprintf(fid, '\nFRAME SIZE TESTING:\n');
+fprintf(fid, '==================\n');
+fprintf(fid, 'Maintaining relationships: Hs=N/2, Δ=Hs/4\n\n');
+
+% Create plots directory for Part C
+plots_dir = fullfile('outputs', 'experiment2', 'plots', 'part_c');
+
+% Test different frame sizes
+fprintf('Testing frame sizes (maintaining Hs=N/2, Δ=Hs/4):\n');
+
+for i = 1:length(config.part_c_frame_sizes)
+    frame_size = config.part_c_frame_sizes(i);
+    syn_hop = frame_size / 2;           % Hs = N/2
+    tolerance = syn_hop / 4;            % Δ = Hs/4
+    
+    fprintf('  N=%d, Hs=%d, Δ=%d ... ', frame_size, syn_hop, tolerance);
+    fprintf(fid, 'Testing N=%d (Hs=%d, Δ=%d):\n', frame_size, syn_hop, tolerance);
+    
+    % Set up WSOLA parameters with specific frame size
+    param_wsola.synHop = syn_hop;
+    param_wsola.tolerance = tolerance;
+    param_wsola.win = win(frame_size, config.part_c_window_beta);
+    
+    try
+        % Apply WSOLA with this frame size
+        y_wsola = wsolaTSM(x_original, config.part_c_alpha, param_wsola);
+        
+        % Store results
+        results.signals.(sprintf('part_c_N_%d', frame_size)) = y_wsola;
+        
+        % Generate comparison plot
+        t_wsola = (0:length(y_wsola)-1) / fs;
+        signals_frame = {x_original, y_wsola};
+        titles_frame = {'Original (C4+G5)', sprintf('N=%d samples (%.1fms)', frame_size, frame_size/fs*1000)};
+        
+        % Show detailed time window to see frame size effects
+        time_range = [0, 0.1];  % Short window to see artifacts clearly
+        
+        % Pad for comparison
+        if length(y_wsola) > length(x_original)
+            x_padded = [x_original; zeros(length(y_wsola) - length(x_original), 1)];
+            fig = plot_amplitude_vs_time({x_padded, y_wsola}, t_wsola, titles_frame, time_range, false);
+        else
+            y_padded = [y_wsola; zeros(length(x_original) - length(y_wsola), 1)];
+            fig = plot_amplitude_vs_time({x_original, y_padded}, t, titles_frame, time_range, false);
+        end
+        
+        saveas(gcf, fullfile(plots_dir, sprintf('part_c_N_%d_comparison.png', frame_size)));
+        close(fig);
+        
+        % Generate FFT analysis to see spectral effects
+        [~, ~, peaks_wsola] = analyze_fft(y_wsola, fs, false);
+        title(sprintf('N=%d Frame Size FFT Analysis', frame_size));
+        saveas(gcf, fullfile(plots_dir, sprintf('part_c_N_%d_fft.png', frame_size)));
+        
+        fprintf('SUCCESS\n');
+        fprintf(fid, '  Result: SUCCESS\n');
+        fprintf(fid, '  Output length: %d samples\n', length(y_wsola));
+        fprintf(fid, '  Frame duration: %.1f ms\n', frame_size/fs*1000);
+        if ~isempty(peaks_wsola.frequencies)
+            fprintf(fid, '  Dominant frequency: %.1f Hz\n', peaks_wsola.frequencies(1));
+            fprintf(fid, '  Peak magnitude: %.3f\n', peaks_wsola.magnitudes(1));
+        end
+        fprintf(fid, '\n');
+        
+    catch ME
+        fprintf('FAILED: %s\n', ME.message);
+        fprintf(fid, '  Result: FAILED - %s\n\n', ME.message);
+        results.signals.(sprintf('part_c_N_%d', frame_size)) = [];
+    end
+end
+
+% Create comparison plot of all frame sizes
+fprintf('  Creating frame size comparison plot...\n');
+try
+    % Collect all successful results for comparison
+    comparison_signals = {x_original};
+    comparison_titles = {'Original'};
+    
+    for i = 1:length(config.part_c_frame_sizes)
+        frame_size = config.part_c_frame_sizes(i);
+        signal_field = sprintf('part_c_N_%d', frame_size);
+        if isfield(results.signals, signal_field) && ~isempty(results.signals.(signal_field))
+            comparison_signals{end+1} = results.signals.(signal_field);
+            comparison_titles{end+1} = sprintf('N=%d (%.1fms)', frame_size, frame_size/fs*1000);
+        end
+    end
+    
+    if length(comparison_signals) > 1
+        % Find longest signal for padding
+        max_length = max(cellfun(@length, comparison_signals));
+        t_common = (0:max_length-1) / fs;
+        
+        % Pad all signals to same length
+        padded_signals = cell(size(comparison_signals));
+        for i = 1:length(comparison_signals)
+            signal = comparison_signals{i};
+            padded_signals{i} = [signal; zeros(max_length - length(signal), 1)];
+        end
+        
+        fig = plot_amplitude_vs_time(padded_signals, t_common, comparison_titles, [0, 0.05], false);
+        sgtitle(sprintf('Frame Size Comparison (α=%.1f)', config.part_c_alpha), 'FontSize', 14, 'FontWeight', 'bold');
+        saveas(gcf, fullfile(plots_dir, 'part_c_all_frame_sizes_comparison.png'));
+        close(fig);
+        
+        fprintf('  Frame size comparison plot saved.\n');
+    end
+    
+catch ME
+    fprintf('  Comparison plot failed: %s\n', ME.message);
+    fprintf(fid, 'Comparison plot failed: %s\n', ME.message);
+end
+
+% Close log file
+fclose(fid);
+fprintf('\nPart C (Frame Size Effects) completed!\n');
+fprintf('Log saved to: %s\n', log_file);
 
 end
+
+
+
