@@ -56,54 +56,52 @@ config.wsola_tolerance_values = [512, 1024, 2048, 4096];
 end
 
 function config = config_exp2()
-% Configuration for Experiment 2: Tempo Modification Analysis
+% Configuration for Experiment 2: Tempo Modification Analysis (Updated Structure)
 
 % Get global config first
 config = project_config();
 
-% Signal generation parameters
+% Signal generation parameters (shared across all parts)
 config.duration = 2;                    % 2 seconds as specified
 config.freq1 = 261;                     % C4 frequency (Hz) 
 config.freq2 = 783;                     % G5 frequency (Hz)
 
-% Standard WSOLA parameters from project overview
-config.frame_size = 1024;               % N = 1024
-config.syn_hop = config.frame_size / 2; % Hs = N/2 = 512
-config.tolerance = config.syn_hop / 4;  % Δ = Hs/4 = 128
+% Standard base parameters for all parts
+config.frame_size = 1024;               % Standard frame size for Parts A and C
+config.tolerance = 128;                 % Standard tolerance (frame_size/8)
 
-% Alpha range for exploration
-config.alpha_min = 0.125;               % Minimum stretching factor (8x faster)
-config.alpha_max = 8.0;                 % Maximum stretching factor (8x slower)
+% ==========================================================================
+% PART A: Hop Size Analysis
+% ==========================================================================
+config.part_a_alpha = 4;             % Fixed alpha for hop size testing
+config.part_a_frame_size = 1024;       % Fixed frame size
+config.part_a_tolerance = 128;         % Fixed tolerance
+config.part_a_window_beta = 2;         % Fixed Hann window
 
-% Define test points across the range
-config.alpha_values = [
-    0.125,                              ... 8x faster (extreme compression)
-    0.25,                               ... 4x faster  
-    0.5,                                ... 2x faster
-    0.75,                               ... 1.33x faster
-    1.0,                                ... Original speed (reference)
-    1.5,                                ... 1.5x slower
-    2.0,                                ... 2x slower
-    4.0,                                ... 4x slower
-    8.0                                 ... 8x slower (extreme stretching)
-];
+% Hop size values to test (synthesis hop sizes in samples)
+config.part_a_hop_sizes = [128, 256, 512, 1024, 2048];
 
-% Part B: Window Type Comparison parameters
-config.part_b_alpha = 2;             % Fixed alpha for window comparison
-config.part_b_frame_size = 1024;       % Fixed N = 1024
-config.part_b_syn_hop = 512;           % Fixed Hs = N/2
-config.part_b_tolerance = 128;         % Fixed Δ = Hs/4
-
-% Window type definitions for Part B
-config.part_b_windows = struct();
-config.part_b_windows.rectangular = struct('beta', 0, 'name', 'Rectangular', 'desc', 'No windowing (β=0)');
-config.part_b_windows.hann = struct('beta', 2, 'name', 'Hann', 'desc', 'Standard Hann window (β=2)');
-config.part_b_windows.blackman = struct('beta', 4, 'name', 'Blackman-like', 'desc', 'Higher order (β=4)');
-
-% Part C: Frame Size Effects parameters
-config.part_c_alpha = 2.0;             % Fixed alpha for frame size comparison
-config.part_c_window_beta = 2;         % Fixed Hann window (β=2)
+% ==========================================================================
+% PART B: Frame Size Effects  
+% ==========================================================================
+config.part_b_alpha = 4;             % Fixed alpha for frame size comparison
+config.part_b_window_beta = 2;         % Fixed Hann window (β=2)
 
 % Frame sizes to test (maintaining Hs=N/2, Δ=Hs/4 relationships)
-config.part_c_frame_sizes = [256, 512, 1024, 2048, 4096];
+config.part_b_frame_sizes = [256, 512, 1024, 2048, 4096];
+
+% ==========================================================================
+% PART C: Window Type Comparison
+% ==========================================================================
+config.part_c_alpha = 4;             % Fixed alpha for window comparison
+config.part_c_frame_size = 1024;       % Fixed N = 1024
+config.part_c_syn_hop = 512;           % Fixed Hs = N/2
+config.part_c_tolerance = 128;         % Fixed Δ = Hs/4
+
+% Window type definitions for Part C
+config.part_c_windows = struct();
+config.part_c_windows.rectangular = struct('beta', 0, 'name', 'Rectangular', 'desc', 'No windowing (β=0)');
+config.part_c_windows.hann = struct('beta', 2, 'name', 'Hann', 'desc', 'Standard Hann window (β=2)');
+config.part_c_windows.blackman = struct('beta', 4, 'name', 'Blackman-like', 'desc', 'Higher order (β=4)');
+
 end
