@@ -231,32 +231,6 @@ else
     error_m2f = inf;
 end
 
-% Save FFT plots for this test
-save_fft_plots(female_to_male, male_to_female, fs, frame_size, syn_hop, tolerance, plots_dir, config);
-
-end
-% =========================================================================
-% SAVE FFT PLOTS FOR PARAMETER TESTS
-% =========================================================================
-function save_fft_plots(female_to_male, male_to_female, fs, frame_size, syn_hop, tolerance, plots_dir, config)
-
-try
-    % F→M FFT
-    [~, ~, ~] = analyze_fft(female_to_male, fs, false, config.fft_freq_range);
-    title(sprintf('F→M FFT: f=%d h=%d t=%d', frame_size, syn_hop, tolerance));
-    saveas(gcf, fullfile(plots_dir, sprintf('fft_f2m_f%d_h%d_t%d.png', frame_size, syn_hop, tolerance)));
-    close(gcf);
-    
-    % M→F FFT
-    [~, ~, ~] = analyze_fft(male_to_female, fs, false, config.fft_freq_range);
-    title(sprintf('M→F FFT: f=%d h=%d t=%d', frame_size, syn_hop, tolerance));
-    saveas(gcf, fullfile(plots_dir, sprintf('fft_m2f_f%d_h%d_t%d.png', frame_size, syn_hop, tolerance)));
-    close(gcf);
-    
-catch
-    % Continue if FFT plotting fails
-end
-
 end
 
 % =========================================================================

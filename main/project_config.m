@@ -159,16 +159,15 @@ config.analysis_duration = 4.0;
 config.plot_time_range = [0.8, 3.0];      % Show longer segments for voice analysis
 
 % Parameter sweep values for voice processing
-config.frame_sizes = [256, 512, 1024];   
-config.syn_hop_sizes = [128, 256, 512];  % Various hop sizes
-config.tolerance_values = [64, 128, 256, 512]; % WSOLA tolerance values
-config.window_beta = 2;                  % Hann window
-
-% config.frame_sizes = [512];   
-% config.syn_hop_sizes = [256, 512];  % Various hop sizes
-% config.tolerance_values = [256, 512]; % WSOLA tolerance values
+% config.frame_sizes = [256, 512, 1024];   
+% config.syn_hop_sizes = [128, 256, 512];  % Various hop sizes
+% config.tolerance_values = [64, 128, 256, 512]; % WSOLA tolerance values
 % config.window_beta = 2;                  % Hann window
 
+config.frame_sizes = [256];
+config.syn_hop_sizes = [128]; 
+config.tolerance_values = [128];
+config.window_beta = 2;
 
 % Voice-specific parameters
 config.min_voice_freq = 80;              % Minimum expected voice frequency (Hz)
