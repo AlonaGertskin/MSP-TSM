@@ -18,6 +18,8 @@ else
             config = config_exp1_sweep();
         case 'exp2'
             config = config_exp2();
+        case 'exp3'
+            config = config_exp3();
         otherwise
             error('Unknown experiment: %s', experiment);
     end
@@ -103,5 +105,32 @@ config.part_c_windows = struct();
 config.part_c_windows.rectangular = struct('beta', 0, 'name', 'Rectangular', 'desc', 'No windowing (β=0)');
 config.part_c_windows.hann = struct('beta', 2, 'name', 'Hann', 'desc', 'Standard Hann window (β=2)');
 config.part_c_windows.sin_4_window = struct('beta', 4, 'name', 'sin^4 window', 'desc', 'Higher order (β=4)');
+
+end
+
+function config = config_exp3()
+% Configuration for Experiment 3: Percussive Signal Processing (Bongo)
+
+% Get global config first
+config = project_config();
+
+% Input file parameters
+config.input_file = 'Bongo.wav';
+config.expected_fs = 22050;              % Expected sampling rate
+
+% Stretching factors to test
+config.alpha_values = [0.5, 1.0, 2.0];  % Compression, identity, stretching
+
+% WSOLA tolerance values to test (samples)
+config.tolerance_values = [0, 128, 256, 512, 1024, 2048];
+
+% Fixed WSOLA parameters for consistency
+config.frame_size = 512;                 % Small frame for percussive content
+config.syn_hop = 256;                    % Hs = N/2
+config.window_beta = 2;                  % Hann window
+
+% Analysis parameters
+config.analysis_duration = 3.0;          % Analyze first 3 seconds
+config.plot_time_range = [0, 0.5];      % Detailed view for transient analysis
 
 end
