@@ -1,4 +1,5 @@
-function [freq_axis, magnitude, peaks] = analyze_fft(x, fs, plot_result)
+function [freq_axis, magnitude, peaks] = analyze_fft(x, fs, plot_result, freq_range)
+
 % ANALYZE_FFT - Perform FFT analysis on signal
 %
 % Input:
@@ -17,6 +18,10 @@ if nargin < 2
 end
 if nargin < 3
     plot_result = false;
+end
+
+if nargin < 4
+    freq_range = [0, 2000];  % Default range for backward compatibility
 end
 
 % Ensure signal is column vector
@@ -84,7 +89,7 @@ grid on;
 xlabel('Frequency (Hz)');
 ylabel('Magnitude');
 title('FFT Magnitude Spectrum');
-xlim([0, 2000]);  % Show up to 2kHz for audio signals
+xlim(freq_range);  % Show up to 2kHz for audio signals
 legend('Spectrum', 'Peaks', 'Location', 'best');
 
 end

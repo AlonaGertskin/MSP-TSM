@@ -20,6 +20,8 @@ else
             config = config_exp2();
         case 'exp3'
             config = config_exp3();
+        case 'exp4'
+            config = config_exp4();
         otherwise
             error('Unknown experiment: %s', experiment);
     end
@@ -124,13 +126,54 @@ config.alpha_values = [0.5, 1.0, 2.0];  % Compression, identity, stretching
 % WSOLA tolerance values to test (samples)
 config.tolerance_values = [0, 128, 256, 512, 1024, 2048];
 
-% Fixed WSOLA parameters for consistency
-config.frame_size = 512;                 % Small frame for percussive content
-config.syn_hop = 256;                    % Hs = N/2
+% Fixed WSOLA parameters
+% parameters for doubling/ stuttering
+config.frame_size = 256;                
+config.syn_hop = 128;                    % Hs = N/2
 config.window_beta = 2;                  % Hann window
+
+% % parameters for skipping
+% config.frame_size = 2028;                 
+% config.syn_hop = 2048;                    % Hs = N/2
+% config.window_beta = 2;                  % Hann window
 
 % Analysis parameters
 config.analysis_duration = 3.0;          % Analyze first 3 seconds
 config.plot_time_range = [0, 0.5];      % Detailed view for transient analysis
+
+end
+
+function config = config_exp4()
+% Configuration for Experiment 4: Voice Signal Processing
+
+% Get global config first
+config = project_config();
+
+% Input file parameters
+config.female_voice_file = 'Female_voice.m4a';
+config.male_voice_file = 'Male_voice.m4a';
+config.expected_fs = 44100;              % Expected sampling rate after conversion
+
+% Analysis parameters
+config.analysis_duration = 4.0;          
+config.plot_time_range = [0.8, 3.0];      % Show longer segments for voice analysis
+
+% Parameter sweep values for voice processing
+config.frame_sizes = [256, 512, 1024];   
+config.syn_hop_sizes = [128, 256, 512];  % Various hop sizes
+config.tolerance_values = [64, 128, 256, 512]; % WSOLA tolerance values
+config.window_beta = 2;                  % Hann window
+
+% config.frame_sizes = [512];   
+% config.syn_hop_sizes = [256, 512];  % Various hop sizes
+% config.tolerance_values = [256, 512]; % WSOLA tolerance values
+% config.window_beta = 2;                  % Hann window
+
+
+% Voice-specific parameters
+config.min_voice_freq = 80;              % Minimum expected voice frequency (Hz)
+config.max_voice_freq = 400;             % Maximum expected voice frequency (Hz)
+config.pitch_shift_range = [-1200, 1200]; % Maximum pitch shift range in cents
+config.fft_freq_range = [0, 800];  % Voice-specific range (80-400 Hz fundamentals + harmonics)
 
 end
