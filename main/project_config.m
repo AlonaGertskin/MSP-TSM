@@ -22,6 +22,8 @@ else
             config = config_exp3();
         case 'exp4'
             config = config_exp4();
+        case 'exp5'
+            config = config_exp5();
         otherwise
             error('Unknown experiment: %s', experiment);
     end
@@ -174,5 +176,53 @@ config.min_voice_freq = 80;              % Minimum expected voice frequency (Hz)
 config.max_voice_freq = 400;             % Maximum expected voice frequency (Hz)
 config.pitch_shift_range = [-1200, 1200]; % Maximum pitch shift range in cents
 config.fft_freq_range = [0, 800];  % Voice-specific range (80-400 Hz fundamentals + harmonics)
+
+end
+
+function config = config_exp5()
+% Configuration for Experiment 5: Polyphonic Music Layers
+
+% Get global config first
+config = project_config();
+
+% Input files (individual layers)
+config.individual_layers = {
+    'Bass_only.wav',
+    'drum_only.wav', 
+    'pad_only.wav',
+    'Synth_only.wav'
+};
+
+% Input files (layer combinations)
+config.layer_combinations = {
+    'drum_bass.wav',
+    'Pad_bass_drum.wav',
+    'Pad_drum.wav'
+};
+
+% Full mix file
+config.full_mix_file = 'Pad_bass_synth_drum.wav';
+
+% Tempo modifications (stretching factors)
+config.alpha_values = [1.5, 0.75];  % 150% speed, 75% speed
+
+% Window sizes to test (in milliseconds)
+config.window_sizes_ms = [300, 400, 100];  % 300ms, 400ms, custom 100ms
+% config.window_sizes_ms = [23, 46, 11]; % ~1000, 2000, 500 samples
+
+% Expected sampling rate
+config.expected_fs = 22050; % to reduce computation
+
+% Analysis parameters
+config.analysis_duration = 5.0;  
+config.plot_time_range = [0, 5];  % Show first 5 seconds in plots
+% In project_config.m, add to config_exp5():
+config.start_offset_seconds = 10.0;  
+
+% TSM parameters
+config.frame_size = 256;
+config.syn_hop_size = 1500; 
+config.tolerance = 1500;
+config.window_beta = 2;
 
 end
